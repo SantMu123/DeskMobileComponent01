@@ -8,9 +8,130 @@ import bookLogo from "/Frame 20.svg"
 import gearLogo from "/Frame 22.svg"
 import exitLogo from "/Frame 26.svg"
 
+
+export class myTrack extends LitElement{ 
+  static properties = {
+    songs: {type: Array}
+  };
+
+
+  constructor() {
+    super();
+    this.song = []
+    this.loadSong();
+  }
+
+  async loadSong() {
+    const url = 'https://spotify23.p.rapidapi.com/search/?q=%3CREQUIRED%3E&type=multi&offset=0&limit=10&numberOfTopResults=5';
+    const options = {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': 'c3ee80820bmsh4272f11ed8dd116p18e706jsn5a4b603718bf',
+        'X-RapidAPI-Host': 'spotify23.p.rapidapi.com'
+      }
+    };
+
+    try {
+      const response = await fetch(url, options);
+      const result = await response.json();
+      console.log(result)
+      this.songs = result.artists.items.data;
+      console.log(this.songs)
+      this.requestUpdate();
+    } catch (error) {
+        console.error('Error fetching songs:', error);
+    }
+  }
+
+  render() {
+    console.log(this.songs)
+    return html`
+    <div>
+      ${Array.isArray(this.songs) && this.songs.length > 0 ? 
+      this.songs.map(song => html`
+      <div class="card">
+      <div class="cards">
+          <div class="cards_info">
+              <div class="aling"><button  type="button"> <box-icon name='menu'></box-icon></button></div>
+              <div class="img"><img src="${song.releases.items[0].coverArt.sources[0].url}"></div>
+              <div class="Titule_and_artis">
+                  <h3>${song.releases.items[0].name}</h3>
+              </div>
+              </div>
+              <div class="minutes_and_date">
+              <h5>${song.releases.items[0].date.year}</h5>
+          </div>
+      </div>
+  </div>  `)
+
+   : 
+    html`<p>No hay canciones disponibles</p>`
+  }
+  </div>
+`;
+}
+
+  static styles = css`
+  .card {
+    margin: 10px;
+    padding: 0;
+}
+
+.cards{
+    background: black;
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden; 
+    margin-bottom: 10px
+}
+
+.cards h3{
+  margin: 5px;
+  font-size: 15px ;
+}
+
+.cards h5{
+  margin: 0;
+  color: rgb(124, 124, 124);
+}
+
+.cards button{
+  background: none;
+  border: none;
+}
+
+.card button:hover{
+  cursor: pointer;
+}
+
+.cards .cards_info{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.cards .cards_info .img{
+  height: 50px;
+  width: 50px
+}
+
+.cards .cards_info .img img{
+  height: 50px;
+  width: 50px;
+  object-fit: cover;
+}
+
+.cards .minutes_and_date{
+  padding-right: 10px
+}
+  `
+}   
+customElements.define('my-track', myTrack);
+
 export class MyElement extends LitElement {
   
-
   constructor() {
     super();
   }
@@ -171,9 +292,9 @@ export class MyLeftSection extends LitElement {
 
   render() {
     return html`
-      <div class="leftSection__title"></div>
-      <div class="leftSection__topChart"></div>
-      <div class="leftSection__mayLike"></div>
+    <div class="leftSection__title"><h1>Discover New music</h1></div>
+    <div class="leftSection__topChart"><new-music class="new-music"></new-music></div>
+      <div class="leftSection__mayLike"><my-track></my-track></div>
     `
   }
 
@@ -181,7 +302,11 @@ export class MyLeftSection extends LitElement {
     return css`
       :host{
         display: grid;
-        grid-rows: .5fr, 5fr, 5fr;
+        grid-template-areas: 
+        "title",
+        "topChart",
+        "mayLike";
+        grid-template-rows: repeat(3, 1fr);
         height: 98vh;
         gap: 1em;
         /*padding: 0 .5em;*/
@@ -189,19 +314,30 @@ export class MyLeftSection extends LitElement {
       }
       .leftSection__title{
         margin-top: 1em;
-        grid-rows: 1/2;
-        background: white;
-        max-height: 100px;
+        grid-areas: "title";
+        background: black;
+        height: 10vh;
       }
       .leftSection__topChart{
-        grid-rows: 2/3;
+        grid-areas: "topChart";
         background: white;
-        min-height: 250px;
+        height: 50vh;
+        display: flex;
+        align-content: center;
+        flex-flow: column wrap;
+        justify-content: center;
+      }
+      .leftSection__topChart .new-music{
+        height: 100%;
       }
       .leftSection__mayLike{
-        grid-rows: 3/4;
-        background: white;
-        min-height: 300px;
+        grid-areas: "mayLike";
+        background: black;
+        height: 30vh;
+        overflow: scroll
+      }
+      .leftSection__mayLike::-webkit-scrollbar {
+        display: none;
       }
     `
   }
@@ -218,15 +354,7 @@ export class MyMiddleSection extends LitElement {
 
   render() {
     return html`
-      <div class = middleSection__container>
-        <div class = "middleSection__title"></div>
-        <div class = "middleSection__image"></div>
-        <div class = "middleSection__songTitle"></div>
-        <div class = "middleSection__barDuration"></div>
-        <div class = "middleSection__bottons"></div>
-        <div class = "middleSection__barVolume"></div>
-        <div class = "middleSection__deviceReference"></div>
-      </div>
+      <div class = middleSection__container><my-navigation></my-navigation></div>
     `
   }
 
@@ -238,44 +366,6 @@ export class MyMiddleSection extends LitElement {
         gap: .5em;
         height: 96vh;
         padding: 1em 0;
-      }
-      .middleSection__title{
-        grid-rows: 1/2;
-        background: white;
-        max-height: 40px;
-      }
-      .middleSection__image{
-        grid-rows: 2/3;
-        background: white;
-        min-height: 300px;
-      }
-      .middleSection__songTitle{
-        grid-rows: 3/4;
-        background: white;
-        
-      }
-      .middleSection__barDuration{
-        grid-rows: 4/5;
-        background: white;
-        max-height: 25px;
-        display: flex;
-        align-items:center;
-        justify-content: center;
-      }
-      .middleSection__bottons{
-        grid-rows: 5/6;
-        background: white;
-        min-height: 30px;
-      }
-      .middleSection__barVolume{
-        grid-rows: 6/7;
-        background: white;
-        max-height: 20px;
-      }
-      .middleSection__deviceReference{
-        grid-rows: 7/8;
-        background: white;
-        max-height: 40px;
       }
     `
   }
@@ -293,10 +383,10 @@ export class MyRightSection extends LitElement {
   render() {
     return html`
       <div class = rightSection__container>
-        <div class = "rightSection__title"></div>
-        <div class = "rightSection__tools"></div>
-        <div class = "rightSection__playingNext"></div>
-        <div class = "rightSection__Songs"></div>
+        <div class = "rightSection__title"><h1>Track list</h1></div>
+        <div class = "rightSection__tools"><box-icon name='repost' color='#908e8e' ></box-icon> <box-icon name='shuffle' color='#908e8e'></box-icon></div>
+        <div class = "rightSection__playingNext"><h3>Playing next<h3></div>
+        <div class = "rightSection__Songs"><my-track></my-track></div>
       </div>
     `
   }
@@ -305,30 +395,55 @@ export class MyRightSection extends LitElement {
     return css`
       .rightSection__container{
         display: grid;
-        grid-template-rows: .2fr, .2fr, .15fr, 1fr;
+        grid-template-areas: 
+        "title",
+        "tools",
+        "playingNext",
+        "Song";
+        grid-template-rows: repeat(4, 1fr);
         height: 96vh;
         padding: 1em 0;
         gap: .1em;
       }
       .rightSection__title{
-        grid-rows:1/2;
+        grid-areas: "title";
         background: white;
-        max-height: 40px;
+        height: 5vh;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+      .rightSection__title h1{
+        color: #333333;
+        font-size: 2.5em;
+        margin-left: 10px;
       }
       .rightSection__tools{
-        grid-rows:2/3;
-        background: white;
-        max-height: 40px;
+        grid-areas: "tools";
+        background: black;
+        height: 5vh;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
       }
+
       .rightSection__playingNext{
-        grid-rows:3/4;
-        background: white;
-        max-height: 20px;
+        grid-areas: "playingNext";
+        background: black;
+        height: 5vh;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
       }
       .rightSection__Songs{
-        grid-rows:4/5;
-        background: white;
-        min-height: 620px 
+        grid-areas: "Song";
+        background: black;
+        height: 80vh;
+        overflow: scroll
+      }
+
+      .rightSection__Songs::-webkit-scrollbar {
+        display: none;
       }
     `
   }
@@ -336,3 +451,159 @@ export class MyRightSection extends LitElement {
 
 customElements.define('my-right-section', MyRightSection); 
 
+export class MyNavegation extends LitElement {
+  static styles = css`
+  *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  .body{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+  }
+  .header{
+      display: flex;
+      height: 5vh;
+      justify-content: center;
+      align-items: center;
+  }
+  .UserOptions{
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+  }
+  .songName{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+  }
+  .mediaOptions{
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      padding-left: 3vh;
+      padding-right: 3vh;
+      height: 25vh;
+      justify-content: space-around;
+  }
+  
+  .musicTime{
+      display: flex;
+      justify-content: space-between;
+
+  }
+  .progressMusic{
+      display: flex;
+      justify-content: center;
+  }
+  .progressMusic progress{
+      width: 100%;
+      height: 0.5vh;
+      background-color: #ddd;
+  }
+  progress::-webkit-progress-value{
+      background-color: #27AE60;
+  }
+  progress::-webkit-progress-bar {
+
+      background-color: #ececec;
+  }
+  .mediaControl{
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+  }
+  .volumeControl{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+  .volumeControl progress{
+      width: 50%;
+      height: 0.3vh;
+      background-color: #ddd;
+  }
+  .deviceOutput{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      justify-content: center;
+  }
+  .deviceOutput div{
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      background: #6fcf9752;
+      width: 18vh;
+      border-radius: 1vh;
+  }
+  .SongImage{
+    display: flex;
+    justify-content: center
+  }
+  `;
+  render() {
+    return html`
+    <body class="body">
+    <header class="header">
+      <div>
+        <h3>Now Playing</h3>
+      </div>
+    </header>
+    <div class="SongInfo">
+      <div class="SongImage">
+        <img src="src/assets/image20.png" alt="">
+      </div>
+      <div class="UserOptions">
+        <div>
+          <box-icon name='plus' color='#9bd8b5'></box-icon>
+        </div>
+        <div class="songName">
+          <h3>
+            Money Machine
+          </h3>
+          <h6>
+            1000 Gecks
+          </h6>
+        </div>
+        <div>
+          <box-icon name='heart' color='#9bd8b5' ></box-icon>
+        </div>
+      </div>
+    </div>
+    <div class="mediaOptions">
+      <div class="musicTimeline">
+        <div class="musicTime">
+          <p>2:14</p>
+          <p>-1:15</p>
+        </div>
+        <div class="progressMusic">
+          <progress class="progress" value="214" max="329"></progress>
+        </div>
+        </div>
+      <div class="mediaControl">
+        <box-icon name='shuffle' flip='vertical' color='#828282' ></box-icon>
+        <box-icon name='rewind' flip='vertical' color='#27ae60' size='lg' ></box-icon>
+        <box-icon name='play-circle' color='#27ae60' size='lg'></box-icon>
+        <box-icon name='rewind' rotate='180' color='#27ae60' size='lg'></box-icon>
+        <box-icon name='repeat' color='#828282'></box-icon>
+      </div>
+      <div class="volumeControl">
+        <box-icon name='volume-low' color='#828282'></box-icon>
+        <progress class="progress" value="214" max="329"></progress>
+        <box-icon name='volume-full' color='#828282' ></box-icon>
+      </div>
+      <div class="deviceOutput">
+        <div><box-icon name='headphone' color='#828282' ></box-icon>
+          <p>Airpods Pro (Dave)</p>
+        </div>
+      </div>
+    </div>
+  </body>
+    `;
+  }
+}
+
+customElements.define('my-navigation', MyNavegation);
